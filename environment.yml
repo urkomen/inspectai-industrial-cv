@@ -1,0 +1,30 @@
+name: inspectai
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      # RTX 5060 Ti (Blackwell, sm_120) requiere builds de PyTorch con CUDA 12.8+.
+      # El sufijo +cu130 obliga a pip a usar el indice de PyTorch y no el wheel CPU de PyPI.
+      - --extra-index-url https://download.pytorch.org/whl/cu130
+      - torch==2.14.1+cu130
+      - torchvision==0.29.1+cu130
+      - ultralytics
+      - anomalib
+      - albumentations
+      - opencv-python
+      - grad-cam
+      - wandb
+      - fastapi
+      - uvicorn[standard]
+      - python-multipart
+      - pydantic
+      - gradio
+      - matplotlib
+      - pandas
+      - pyyaml
+      - python-dotenv
+      - jupyterlab
+      - pytest
+      - httpx

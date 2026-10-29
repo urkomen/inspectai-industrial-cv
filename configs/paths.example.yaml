@@ -1,0 +1,23 @@
+# Plantilla de rutas locales. Copiar a configs/paths.yaml (en .gitignore) y ajustar.
+# Los datos y modelos viven fuera del repositorio (disco externo), nunca en OneDrive/C:.
+data_root: E:/Github/inspectai-industrial-cv
+
+raw:
+  codebrim: ${data_root}/data/raw/codebrim
+  neu_surface: ${data_root}/data/raw/neu_surface
+  rdd2022: ${data_root}/data/raw/rdd2022
+  mvtec: ${data_root}/data/raw/mvtec
+
+unified:
+  root: ${data_root}/data/unified
+  images: ${data_root}/data/unified/images
+  labels: ${data_root}/data/unified/labels
+
+models:
+  root: ${data_root}/models
+  yolo: ${data_root}/models/yolov8_industrial.pt
+  autoencoder: ${data_root}/models/autoencoder_mvtec.pt
+  patchcore_index: ${data_root}/models/patchcore_index
+
+runs: ${data_root}/runs            # salidas de ultralytics (project=)
+wandb_dir: ${data_root}/wandb_runs

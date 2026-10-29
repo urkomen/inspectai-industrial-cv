@@ -1,0 +1,31 @@
+# Configuracion local y secretos
+.env
+configs/paths.yaml
+
+plan_cv_alerion.md
+
+# Datos, modelos y experimentos (viven en el disco externo)
+/data/
+/models/
+/runs/
+/wandb/
+/wandb_runs/
+/cache/
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Entorno / IDE
+.venv/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
