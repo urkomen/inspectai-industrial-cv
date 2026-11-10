@@ -11,13 +11,25 @@ supervised:
   seed: 42
   run_name: yolov8m_baseline
 
+# test = 20 % de todo; val = 10 % sacado del 80 % restante (YOLO lo necesita para elegir checkpoint)
 split:
   train: 0.70
-  val: 0.15
-  test: 0.15
+  val: 0.10
+  test: 0.20
 
 rdd2022:
   countries: [Japan]       # subconjunto manejable (~10k imagenes)
+  classes: [D00, D10, D20, D40]   # las del label_map oficial; D43, D44 y D50 se excluyen
+  keep_excluded_only_as_negatives: false   # imagenes cuyas unicas cajas son de clases excluidas
+
+# Conversion a YOLO (src/data/unify.py). El reparto train/val/test esta en "split".
+unify:
+  seed: 42
+  max_side: 1280           # lado mayor al copiar las imagenes (0 = sin reescalar)
+  jpeg_quality: 95         # solo si hay que recodificar (reescalado o rotacion EXIF)
+  min_box_px: 2            # se descartan cajas con ancho o alto menor (px originales)
+  keep_negatives: true     # imagenes anotadas que se quedan sin cajas -> etiqueta vacia
+  workers: 4
 
 unsupervised:
   mvtec_categories: [carpet, grid, metal_nut, tile]

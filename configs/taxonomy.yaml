@@ -1,0 +1,32 @@
+# Taxonomia unificada de clases (opcion A del plan: una clase por tipo de dano y dataset).
+# Lo lee src/data/taxonomy.py. El id es el indice de clase YOLO; no reordenar sin reconvertir
+# data/unified, porque los ids quedan escritos en las etiquetas .txt.
+#
+# family: familia morfologica (opcion B del plan). Es solo metadato para analisis y para probar
+# una agrupacion mas adelante; no se usa al entrenar con la opcion A. Asignacion provisional:
+#   - "deformacion" solo contiene steel_scratches, ningun dataset trae una deformacion estricta.
+#   - concrete_exposed_bars y steel_rolled_in_scale se han puesto en "corrosion" por ser
+#     acero expuesto u oxidado; son las asignaciones mas discutibles.
+#
+# dataset / source_label: clave de P["raw"] y texto de la etiqueta en el origen.
+#   CODEBRIM: nombre del flag dentro de <Defect> (el flag Background no es un dano y se ignora).
+#   NEU-DET y RDD2022: texto de <name> en el XML Pascal VOC.
+
+families: [grieta, fragmentacion, corrosion, deformacion, contaminacion]
+
+classes:
+  - {id: 0,  name: concrete_crack,          dataset: codebrim,    source_label: Crack,          family: grieta}
+  - {id: 1,  name: concrete_spalling,       dataset: codebrim,    source_label: Spallation,     family: fragmentacion}
+  - {id: 2,  name: concrete_efflorescence,  dataset: codebrim,    source_label: Efflorescence,  family: contaminacion}
+  - {id: 3,  name: concrete_exposed_bars,   dataset: codebrim,    source_label: ExposedBars,    family: corrosion}
+  - {id: 4,  name: concrete_corrosion_stain, dataset: codebrim,   source_label: CorrosionStain, family: corrosion}
+  - {id: 5,  name: steel_crazing,           dataset: neu_surface, source_label: crazing,        family: grieta}
+  - {id: 6,  name: steel_inclusion,         dataset: neu_surface, source_label: inclusion,      family: contaminacion}
+  - {id: 7,  name: steel_patches,           dataset: neu_surface, source_label: patches,        family: contaminacion}
+  - {id: 8,  name: steel_pitted_surface,    dataset: neu_surface, source_label: pitted_surface, family: fragmentacion}
+  - {id: 9,  name: steel_rolled_in_scale,   dataset: neu_surface, source_label: rolled-in_scale, family: corrosion}
+  - {id: 10, name: steel_scratches,         dataset: neu_surface, source_label: scratches,      family: deformacion}
+  - {id: 11, name: road_longitudinal_crack, dataset: rdd2022,     source_label: D00,            family: grieta}
+  - {id: 12, name: road_transverse_crack,   dataset: rdd2022,     source_label: D10,            family: grieta}
+  - {id: 13, name: road_alligator_crack,    dataset: rdd2022,     source_label: D20,            family: grieta}
+  - {id: 14, name: road_pothole,            dataset: rdd2022,     source_label: D40,            family: fragmentacion}
