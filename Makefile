@@ -1,4 +1,4 @@
-.PHONY: env gpu download unify train evaluate train-anomaly api demo test
+.PHONY: env gpu download unify augment train evaluate train-anomaly api demo test
 
 env:
 	conda env create -f environment.yml
@@ -11,6 +11,9 @@ download:
 
 unify:
 	python -m src.data.unify
+
+augment:
+	python -m src.data.augment
 
 train:
 	python -m src.supervised.train

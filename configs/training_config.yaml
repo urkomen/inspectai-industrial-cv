@@ -31,6 +31,15 @@ unify:
   keep_negatives: true     # imagenes anotadas que se quedan sin cajas -> etiqueta vacia
   workers: 4
 
+# Sobremuestreo offline de clases minoritarias con augmentation por dominio (src/data/augment.py).
+# Solo se aumentan imagenes de train; val y test no se tocan.
+augment:
+  seed: 42
+  target_boxes_per_class: 1000   # las clases con menos cajas en train se sobremuestrean hasta aqui
+  max_copies_per_image: 3        # copias aumentadas como maximo de cada imagen original
+  min_visibility: 0.3            # una caja se descarta si queda visible menos de esta fraccion
+  jpeg_quality: 95
+
 unsupervised:
   mvtec_categories: [carpet, grid, metal_nut, tile]
   imgsz: 256

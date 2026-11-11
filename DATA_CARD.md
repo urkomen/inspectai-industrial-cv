@@ -18,7 +18,8 @@ para entrenar el módulo supervisado (YOLOv8) de InspectAI.
 | Cajas | 28.918 |
 | Clases | 15 (5 hormigón, 6 acero, 4 carretera) |
 | Imágenes negativas (sin cajas) | 820 (7,1 %) |
-| Tamaño en disco | 1,1 GB (lado mayor ≤ 1.280 px) |
+| Copias aumentadas, solo en train (`train_aug`) | 1.649 (ver §3.4) |
+| Tamaño en disco | 1,2 GB (lado mayor ≤ 1.280 px) |
 
 MVTec AD, el dataset del módulo de anomalías, **no forma parte de este dataset**: se usa por separado
 (ver §2 y §3).
@@ -113,6 +114,31 @@ splits en la misma proporción.
 - **Estratificación:** cada clase queda repartida con una desviación máxima de 3 puntos porcentuales
   respecto a 70 / 10 / 20.
 
+### 3.4 Sobremuestreo con augmentation (solo train)
+
+Para compensar el desbalance se generan copias aumentadas de imágenes de **train** (nunca de val ni
+test) con `src/data/augment.py`, hasta unas 1.000 cajas por clase. Las copias viven en `images/train_aug`
+y `labels/train_aug`, y `dataset.yaml` lista las dos carpetas en `train`.
+
+| Clase | Cajas en train | Copias | Train + copias |
+|---|---|---|---|
+| `concrete_crack` | 1.702 | +271 | 1.973 |
+| `concrete_spalling` | 1.310 | +181 | 1.491 |
+| `concrete_efflorescence` | 582 | +418 | 1.000 |
+| `concrete_exposed_bars` | 1.049 | +156 | 1.205 |
+| `concrete_corrosion_stain` | 1.115 | +263 | 1.378 |
+| `steel_crazing` | 481 | +520 | 1.001 |
+| `steel_inclusion` | 710 | +290 | 1.000 |
+| `steel_patches` | 617 | +388 | 1.005 |
+| `steel_pitted_surface` | 308 | +692 | 1.000 |
+| `steel_rolled_in_scale` | 434 | +567 | 1.001 |
+| `steel_scratches` | 375 | +626 | 1.001 |
+| `road_*` (4 clases) | 2.827 / 2.800 / 4.345 / 1.587 | 0 | sin cambios |
+
+Son 1.649 imágenes (1.487 de NEU-DET y 162 de CODEBRIM) con 4.372 cajas; RDD2022 no genera copias porque
+todas sus clases superan el objetivo. En train la proporción entre la clase mayor y la menor pasa de
+14 a 1 a 4,3 a 1. Val y test no cambian: 1.153 y 2.306 imágenes.
+
 ### 3.3 Características de las imágenes
 
 | | CODEBRIM | NEU-DET | RDD2022 Japón |
@@ -149,6 +175,12 @@ Todo el proceso está en `src/data/unify.py` y es reproducible. Cada decisión c
 
 Las 2.627 imágenes sin etiquetas de `RDD2022/Japan/test` no entran en el dataset.
 
+| Decisión | Motivo |
+|---|---|
+| **Sobremuestreo offline de las clases con menos de 1.000 cajas en train** | Ultralytics no admite pesos por clase en la pérdida. Cada dominio usa su propio pipeline de `albumentations` (CODEBRIM: luz, sombras suaves y perspectiva leve; NEU-DET: giros de 90°, flips y ruido de sensor monocromo; RDD2022: llovizna, luz, perspectiva y desenfoque de movimiento). Las copias de una imagen se limitan a 3 |
+| **Copias en una carpeta aparte (`train_aug`)** | Se pueden desactivar o regenerar sin tocar el reparto original |
+| **Sin rotaciones libres de ángulo pequeño** | Al rotar una caja, la que la contiene crece, y en grietas finas y largas el ajuste empeora mucho. Se usan giros de 90°, flips y perspectiva leve |
+
 ---
 
 ## 5. Limitaciones y sesgos conocidos
@@ -162,7 +194,11 @@ Las 2.627 imágenes sin etiquetas de `RDD2022/Japan/test` no entran en el datase
 - **Dominios muy distintos.** NEU-DET son parches de 200×200 en escala de grises con defectos grandes;
   CODEBRIM y RDD2022 tienen defectos pequeños en imágenes grandes. Un buen resultado global no implica buen
   resultado en cada dominio: hay que reportar métricas por dataset.
-- **Desbalance** de clases (14 a 1) y de dominios (RDD2022 el 57 % de las cajas).
+- **Desbalance** de clases (14 a 1 en el dataset base, 4,3 a 1 en train tras el sobremuestreo) y de
+  dominios (RDD2022 el 57 % de las cajas).
+- **Copias aumentadas correlacionadas.** Las 1.649 copias de `train_aug` derivan de imágenes ya presentes en
+  train; con muchas copias el modelo puede memorizar esas imágenes. No hay fuga hacia val o test, porque
+  solo se aumenta train.
 - **Cajas duplicadas en CODEBRIM:** válidas, pero compiten por las mismas posiciones de predicción y
   pueden empeorar el aprendizaje de esas clases.
 - **Calidad de las anotaciones.** No se ha revisado manualmente. En NEU-DET el 2 % de las cajas cubre más
@@ -186,12 +222,14 @@ comparar enfoques supervisado y no supervisado.
 ```bash
 python -m src.data.unify --dry-run     # estadísticas y reparto, sin escribir
 python -m src.data.unify --sanity 4    # conversión completa + hoja de comprobación
+python -m src.data.augment             # copias aumentadas de train (necesita albumentations)
 ```
 
 Entradas: `data/raw/{codebrim,neu_surface,rdd2022}`. Configuración: `configs/taxonomy.yaml` y
 `configs/training_config.yaml` (`split`, `rdd2022`, `unify`). La salida es determinista con la semilla
 `unify.seed` (42). Salidas: `data/unified/{images,labels}`, `dataset.yaml`, `manifest.csv`,
-`class_distribution.csv`. Detalle técnico en `doc_tecnico.md` (§4.4 y §6.2).
+`class_distribution.csv`; el sobremuestreo añade `images/train_aug`, `labels/train_aug`, `manifest_aug.csv`
+y `augment_check.png`. Detalle técnico en `doc_tecnico.md` (§4.4, §6.2 y §6.3).
 
 ## 8. Citas
 
